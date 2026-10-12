@@ -13,6 +13,7 @@
 #include <QDataStream>
 #include <QHash>
 #include <QStringDecoder>
+#include <QStringEncoder>
 #include <QTimeZone>
 
 // TIFF 6 specs
@@ -83,6 +84,8 @@
 #define EXIF_TAG_VALUE(n, byteSize) (((n) << 6) | ((byteSize) & 0x3F))
 #define EXIF_TAG_SIZEOF(dataType) (quint16(dataType) & 0x3F)
 #define EXIF_TAG_DATATYPE(dataType) (quint16(dataType) >> 6)
+
+#define GPS_GPSVERSION_VALUE QList<quint8>{0x02, 0x04, 0x00, 0x00}
 
 enum class ExifTagType : quint16 {
     // Base data types
@@ -1325,7 +1328,7 @@ QByteArray MicroExif::gpsIfdByteArray(const QDataStream::ByteOrder &byteOrder, c
         QDataStream ds(&ba, QIODevice::WriteOnly);
         ds.setByteOrder(byteOrder);
         auto gpsTags = m_gpsTags;
-        gpsTags.insert(GPS_GPSVERSION, QByteArray("2400"));
+        gpsTags.insert(GPS_GPSVERSION, QVariant::fromValue(GPS_GPSVERSION_VALUE));
         TagPos positions;
         if (!writeIfd(ds, version, gpsTags, positions, 0, staticGpsTagTypes))
             return {};
@@ -1723,7 +1726,7 @@ void MicroExif::updateTags(Tags &tiffTags, Tags &exifTags, Tags &gpsTags, const 
         tiffTags.remove(EXIF_GPSIFD);
     } else {
         tiffTags.insert(EXIF_GPSIFD, quint32());
-        gpsTags.insert(GPS_GPSVERSION, QByteArray("2400"));
+        gpsTags.insert(GPS_GPSVERSION, QVariant::fromValue(GPS_GPSVERSION_VALUE));
     }
 }
 
@@ -1746,9 +1749,10 @@ void MicroExif::setUtf16String(Tags &tags, quint16 tagId, const QString &s)
         tags.remove(tagId);
         return;
     }
-    auto s16 = s.toStdU16String();
+
+    QStringEncoder fromUtf16(QStringEncoder::Utf16LE, QStringEncoder::Flag::Stateless);
+    QByteArray ba = fromUtf16(s);
     QList<quint8> uba;
-    auto ba = QByteArrayView(reinterpret_cast<char*>(s16.data()), s.size() * 2);
     for(auto&& c : ba)
         uba.append(quint8(c));
     uba.append(quint8('\0'));
@@ -1761,7 +1765,6 @@ QString MicroExif::utf16String(const Tags &tags, quint16 tagId)
     auto ba = tags.value(tagId).value<QList<quint8>>();
     if (ba.isEmpty())
         return {};
-    auto p16 = reinterpret_cast<char16_t*>(ba.data());
-    auto sz = std::max(ba.size() / 2 - 1, qsizetype());
-    return QString::fromUtf16(p16, sz);
+    QStringDecoder toUtf16(QStringDecoder::Utf16LE, QStringDecoder::Flag::Stateless);
+    return toUtf16(QByteArrayView(ba.data(), std::max(ba.size() - 2, qsizetype())));
 }
