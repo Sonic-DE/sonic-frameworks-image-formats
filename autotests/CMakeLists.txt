@@ -260,5 +260,5 @@ add_executable(apngtest apngtest.cpp)
 target_link_libraries(apngtest Qt6::Gui Qt6::Test)
 ecm_mark_as_test(apngtest)
 add_test(NAME kimageformats-apng COMMAND apngtest)
-# QMovie keeps its frames as pixmaps, which need a QGuiApplication
-set_tests_properties(kimageformats-apng PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+# QTEST_MAIN creates a QGuiApplication, which needs a platform even without a display
+set_tests_properties(kimageformats-pic kimageformats-ani kimageformats-apng PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
