@@ -305,7 +305,7 @@ static QString setLayerName(Imf::RgbaInputFile &file, qint32 imageNumber = -1)
 }
 
 #ifdef QT_DEBUG
-static void printAttributes(const Imf::Header &h)
+[[maybe_unused]] static void printAttributes(const Imf::Header& h)
 {
     for (auto i = h.begin(); i != h.end(); ++i) {
         qCDebug(LOG_EXRPLUGIN) << i.name() << i.attribute().typeName();
