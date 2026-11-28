@@ -37,6 +37,11 @@ kimageformats_add_plugin(kimg_ani SOURCES ani.cpp)
 
 ##################################
 
+kimageformats_add_plugin(kimg_apng SOURCES apng.cpp)
+target_link_libraries(kimg_apng PRIVATE Sonic::Logging)
+
+##################################
+
 if (TARGET avif)
     kimageformats_add_plugin(kimg_avif SOURCES avif.cpp microexif.cpp)
     target_link_libraries(kimg_avif PRIVATE "avif")

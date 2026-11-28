@@ -255,3 +255,10 @@ add_executable(anitest anitest.cpp)
 target_link_libraries(anitest Qt6::Gui Qt6::Test)
 ecm_mark_as_test(anitest)
 add_test(NAME kimageformats-ani COMMAND anitest)
+
+add_executable(apngtest apngtest.cpp)
+target_link_libraries(apngtest Qt6::Gui Qt6::Test)
+ecm_mark_as_test(apngtest)
+add_test(NAME kimageformats-apng COMMAND apngtest)
+# QMovie keeps its frames as pixmaps, which need a QGuiApplication
+set_tests_properties(kimageformats-apng PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

@@ -25,6 +25,7 @@ include(FindPkgConfig)
 
 set(REQUIRED_QT_VERSION 6.10.0)
 find_package(Qt6Gui ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
+find_package(SonicLogging ${KF_VERSION} CONFIG REQUIRED)
 
 find_package(KF6Archive ${KF_DEP_VERSION})
 set_package_properties(KF6Archive PROPERTIES
