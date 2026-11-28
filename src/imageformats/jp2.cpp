@@ -57,13 +57,13 @@ static void error_callback(const char *msg, void *client_data)
     qCCritical(LOG_JP2PLUGIN) << msg;
 }
 
-static void warning_callback(const char *msg, void *client_data)
+[[maybe_unused]] static void warning_callback(const char* msg, void* client_data)
 {
     Q_UNUSED(client_data)
     qCWarning(LOG_JP2PLUGIN) << msg;
 }
 
-static void info_callback(const char *msg, void *client_data)
+[[maybe_unused]] static void info_callback(const char* msg, void* client_data)
 {
     Q_UNUSED(client_data)
     qCInfo(LOG_JP2PLUGIN) << msg;
