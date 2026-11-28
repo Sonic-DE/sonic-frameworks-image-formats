@@ -2,6 +2,10 @@
 
 Sonic Frameworks Image Formats lets SonicDE apps open many more kinds of pictures, from modern web formats to professional and raw camera images.
 
+## Unreleased
+
+- Behind the scenes: builds without compiler warnings.
+
 ## 6.31.0 (2026-10-20)
 
 - Behind the scenes: version update.
