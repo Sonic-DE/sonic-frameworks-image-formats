@@ -306,7 +306,7 @@ inline float fppm2dpi(qint32 ppm, bool *ok = nullptr)
  * \param maxSize The maximum size to read.
  * \return The byte array read.
  */
-static QByteArray deviceRead(QIODevice *d, qint64 maxSize)
+inline QByteArray deviceRead(QIODevice* d, qint64 maxSize)
 {
     if (d == nullptr) {
         return{};
