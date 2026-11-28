@@ -57,13 +57,13 @@ static void error_callback(const char *msg, void *client_data)
     qCCritical(LOG_JP2PLUGIN) << msg;
 }
 
-static void warning_callback(const char *msg, void *client_data)
+[[maybe_unused]] static void warning_callback(const char* msg, void* client_data)
 {
     Q_UNUSED(client_data)
     qCWarning(LOG_JP2PLUGIN) << msg;
 }
 
-static void info_callback(const char *msg, void *client_data)
+[[maybe_unused]] static void info_callback(const char* msg, void* client_data)
 {
     Q_UNUSED(client_data)
     qCInfo(LOG_JP2PLUGIN) << msg;
@@ -130,6 +130,20 @@ public:
         }
     }
     ~JP2HandlerPrivate()
+    {
+        resetDecoder();
+    }
+
+    /*!
+     * \brief resetDecoder
+     * Discard the whole decoding pipeline (image, stream and codec) so that
+     * the next read starts from scratch. It must be called after a failed
+     * opj_setup_decoder()/opj_read_header()/opj_decode(): on failure
+     * OpenJPEG frees its internal image (m_private_image) while the tile
+     * coder inside the codec still references it, so reusing the codec
+     * would lead to a use-after-free.
+     */
+    void resetDecoder()
     {
         if (m_jp2_image) {
             opj_image_destroy(m_jp2_image);
@@ -237,11 +251,13 @@ public:
         opj_set_default_decoder_parameters(&m_dparameters);
         if (!opj_setup_decoder(m_jp2_codec, &m_dparameters)) {
             qCCritical(LOG_JP2PLUGIN) << "Failed to setup JP2 decoder!";
+            resetDecoder();
             return false;
         }
 
         if (!opj_read_header(m_jp2_stream, m_jp2_codec, &m_jp2_image)) {
             qCCritical(LOG_JP2PLUGIN) << "Failed to read JP2 header!";
+            resetDecoder();
             return false;
         }
 
@@ -322,6 +338,7 @@ public:
 
         if (!opj_decode(m_jp2_codec, m_jp2_stream, m_jp2_image)) {
             qCCritical(LOG_JP2PLUGIN) << "Failed to decoding JP2 image!";
+            resetDecoder();
             return {};
         }
 
@@ -341,6 +358,11 @@ public:
         }
 
         img.setColorSpace(colorSpace());
+
+#ifdef KIF_EXPOSE_LIBVER
+        quint32 ver = opjVersion();
+        img.setText(QStringLiteral(META_KEY_LIBRARY), QStringLiteral("OpenJPEG %1.%2.%3").arg((ver >> 16) & 0xff).arg((ver >> 8) & 0xff).arg(ver & 0xff));
+#endif
 
         return img;
     }

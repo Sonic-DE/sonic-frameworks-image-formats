@@ -2,13 +2,18 @@
 
 Sonic Frameworks Image Formats lets SonicDE apps open many more kinds of pictures, from modern web formats to professional and raw camera images.
 
+## Unreleased
+
+- Animated PNG pictures now play wherever SonicDE shows animations, whether they're named `.apng` or `.png`.
+- Behind the scenes: builds without compiler warnings.
+
 ## 6.31.0 (2026-10-20)
 
-- Behind the scenes: version update.
+No SonicDE-specific changes in this release; it brings the package up to date with upstream.
 
 ## 6.30.0 (2026-09-12)
 
-- Behind the scenes: version update.
+No SonicDE-specific changes in this release; it brings the package up to date with upstream.
 
 ## 6.29.0 (2026-08-07)
 

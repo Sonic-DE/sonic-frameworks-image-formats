@@ -15,6 +15,9 @@ function(kimageformats_add_plugin plugin)
     target_sources(${plugin} PRIVATE ${KIF_ADD_PLUGIN_SOURCES})
     set_target_properties(${plugin} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/imageformats)
     target_link_libraries(${plugin} PRIVATE Qt6::Gui)
+    if(KIMAGEFORMATS_EXPOSE_LIBVER)
+        target_compile_definitions(${plugin} PRIVATE KIF_EXPOSE_LIBVER)
+    endif()
 
     if(ANDROID)
         # Plugins should be named with lib prefix on Android
@@ -34,6 +37,11 @@ kimageformats_add_plugin(kimg_ani SOURCES ani.cpp)
 
 ##################################
 
+kimageformats_add_plugin(kimg_apng SOURCES apng.cpp)
+target_link_libraries(kimg_apng PRIVATE Sonic::Logging)
+
+##################################
+
 if (TARGET avif)
     kimageformats_add_plugin(kimg_avif SOURCES avif.cpp microexif.cpp)
     target_link_libraries(kimg_avif PRIVATE "avif")
@@ -42,7 +50,7 @@ endif()
 ##################################
 
 if(KIMAGEFORMATS_DDS)
-    kimageformats_add_plugin(kimg_dds SOURCES dds.cpp scanlineconverter.cpp)
+    kimageformats_add_plugin(kimg_dds SOURCES dds.cpp bcdec.cpp scanlineconverter.cpp)
 endif()
 
 ##################################

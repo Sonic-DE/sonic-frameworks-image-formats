@@ -4,8 +4,6 @@
     SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 */
 
-#include <stdio.h>
-
 #include <QBuffer>
 #include <QFile>
 #include <QFileInfo>
@@ -61,6 +59,8 @@ private:
 private Q_SLOTS:
     void initTestCase()
     {
+        // addLibraryPath is a no-op if the path added is already present in the list
+        QCoreApplication::removeLibraryPath(QStringLiteral(PLUGIN_DIR));
         QCoreApplication::addLibraryPath(QStringLiteral(PLUGIN_DIR));
     }
 

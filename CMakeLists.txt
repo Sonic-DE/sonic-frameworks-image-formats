@@ -25,6 +25,7 @@ include(FindPkgConfig)
 
 set(REQUIRED_QT_VERSION 6.10.0)
 find_package(Qt6Gui ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
+find_package(SonicLogging ${KF_VERSION} CONFIG REQUIRED)
 
 find_package(KF6Archive ${KF_DEP_VERSION})
 set_package_properties(KF6Archive PROPERTIES
@@ -105,6 +106,8 @@ if(KIMAGEFORMATS_WITH_KNOWN_CRASHES_JXR)
     find_package(LibJXR)
 endif()
 add_feature_info(LibJXR LibJXR_FOUND "required for the QImage plugin for JPEG XR images")
+
+option(KIMAGEFORMATS_EXPOSE_LIBVER "Store the version of the underlying library in the image metadata" OFF)
 
 ecm_set_disabled_deprecation_versions(
     QT 6.11.0

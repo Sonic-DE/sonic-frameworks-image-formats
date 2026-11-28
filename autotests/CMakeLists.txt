@@ -255,3 +255,10 @@ add_executable(anitest anitest.cpp)
 target_link_libraries(anitest Qt6::Gui Qt6::Test)
 ecm_mark_as_test(anitest)
 add_test(NAME kimageformats-ani COMMAND anitest)
+
+add_executable(apngtest apngtest.cpp)
+target_link_libraries(apngtest Qt6::Gui Qt6::Test)
+ecm_mark_as_test(apngtest)
+add_test(NAME kimageformats-apng COMMAND apngtest)
+# QTEST_MAIN creates a QGuiApplication, which needs a platform even without a display
+set_tests_properties(kimageformats-pic kimageformats-ani kimageformats-apng PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

@@ -83,6 +83,11 @@
 #include <ImfStandardAttributes.h>
 #include <ImfVersion.h>
 
+#ifdef KIF_EXPOSE_LIBVER
+#include <openexr.h>
+#endif
+
+#include <algorithm>
 #include <iostream>
 
 #include <QColorSpace>
@@ -300,7 +305,7 @@ static QString setLayerName(Imf::RgbaInputFile &file, qint32 imageNumber = -1)
 }
 
 #ifdef QT_DEBUG
-static void printAttributes(const Imf::Header &h)
+[[maybe_unused]] static void printAttributes(const Imf::Header& h)
 {
     for (auto i = h.begin(); i != h.end(); ++i) {
         qCDebug(LOG_EXRPLUGIN) << i.name() << i.attribute().typeName();
@@ -524,7 +529,7 @@ bool EXRHandler::read(QImage *outImage)
 
         Imf::Array2D<Imf::Rgba> pixels;
         pixels.resizeErase(EXR_LINES_PER_BLOCK, width);
-        std::memset(pixels[0], 0, sizeof(Imf::Rgba) * EXR_LINES_PER_BLOCK * width);
+        std::fill_n(pixels[0], qint64(EXR_LINES_PER_BLOCK) * width, Imf::Rgba(0.f, 0.f, 0.f, 0.f));
         bool isRgba = image.hasAlphaChannel();
 
         for (int y = 0, n = 0; y < height; y += n) {
@@ -552,6 +557,12 @@ bool EXRHandler::read(QImage *outImage)
         readMetadata(header, image);
         // final color operations
         readColorSpace(header, image);
+
+#ifdef KIF_EXPOSE_LIBVER
+        int maj = 0, min = 0, pat = 0;
+        exr_get_library_version(&maj, &min, &pat, nullptr);
+        image.setText(QStringLiteral(META_KEY_LIBRARY), QStringLiteral("OpenEXR %1.%2.%3").arg(maj).arg(min).arg(pat));
+#endif
 
         *outImage = image;
 
@@ -764,9 +775,16 @@ bool EXRHandler::write(const QImage &image)
         // set the DCT quality (used by DCT compressions only)
         if (m_quality > -1 && m_quality <= 100) {
             header.dwaCompressionLevel() = float(m_quality);
+#if QT_VERSION_CHECK(OPENEXR_VERSION_MAJOR, OPENEXR_VERSION_MINOR, OPENEXR_VERSION_PATCH) >= QT_VERSION_CHECK(3, 5, 0)
+            header.lossyHTJ2KQuality() = float(m_quality) * 1.5f; // Lossy J2K max quality is 150
+#endif
         }
         // make ZIP compression fast (used by ZIP compressions)
         header.zipCompressionLevel() = 1;
+#if QT_VERSION_CHECK(OPENEXR_VERSION_MAJOR, OPENEXR_VERSION_MINOR, OPENEXR_VERSION_PATCH) >= QT_VERSION_CHECK(3, 5, 0)
+        // make ZSTD compression fast (used by ZSTD compressions)
+        header.zstdCompressionLevel() = 1; // default is 5 -> 1 is faster
+#endif
 
         // set preview (don't set it for small images)
         if (width > 1024 || height > 1024) {

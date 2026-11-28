@@ -565,13 +565,13 @@ QList<QRgb> CMAPChunk::palette(bool halfbride) const
 {
     auto p = innerPalette();
     if (!halfbride) {
-        return p;
+        return truncTo8BitColorTable(p);
     }
     auto tmp = p;
     for (auto &&v : tmp) {
         p << qRgb(qRed(v) / 2, qGreen(v) / 2, qBlue(v) / 2);
     }
-    return p;
+    return truncTo8BitColorTable(p);
 }
 
 bool CMAPChunk::innerReadStructure(QIODevice *d)
@@ -1517,7 +1517,8 @@ QImage::Format FORMChunk::iffFormat() const
             return QImage::Format_RGBA64;
         }
         if (h->bitplanes() >= 1 && h->bitplanes() <= 8) {
-            if (h->bitplanes() >= BITPLANES_HAM_MIN && h->bitplanes() <= BITPLANES_HAM_MAX) {
+            // PBM data are chunky indexes (no HAM decoding)
+            if (h->bitplanes() >= BITPLANES_HAM_MIN && h->bitplanes() <= BITPLANES_HAM_MAX && formType() != PBM__FORM_TYPE) {
                 if (modeId & CAMGChunk::ModeId::Ham)
                     return FORMAT_RGB_8BIT;
             }
@@ -2955,7 +2956,7 @@ qint32 PLTEChunk::count() const
     if (!isValid()) {
         return 0;
     }
-    return total() - count();
+    return std::max(0, total() - offset());
 }
 
 qint32 PLTEChunk::offset() const
@@ -4106,7 +4107,14 @@ bool DBODChunk::resetStrideRead(QIODevice *d) const
 quint32 DBODChunk::strideSize(const DGBLChunk *header, const DPELChunk *pel, const DLOCChunk *loc) const
 {
     auto width = loc ? loc->width() : header->width();
-    return (width * pel->depth() + 7) / 8;
+    auto depth = pel->depth();
+    const auto sizeInBits = quint64(width) * quint64(depth);
+    const auto sizeInBytes = (sizeInBits + 7) / 8;
+    if (sizeInBytes > std::numeric_limits<quint32>::max()) {
+        qWarning() << "DBODChunk::strideSize(): size overflow" << sizeInBytes;
+        return 0;
+    }
+    return sizeInBytes;
 }
 
 
